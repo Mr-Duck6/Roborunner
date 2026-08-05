@@ -1,0 +1,14 @@
+# Temporary / Generated files
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+
+# IDE / Solution files
+.vs/
+.idea/
+*.sln
+*.suo
+*.opensdf
+*.sdf
