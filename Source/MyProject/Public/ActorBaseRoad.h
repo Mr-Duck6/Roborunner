@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ActorCell.h"
+#include "RoadTypes.h"
 #include "ActorBaseRoad.generated.h"
 
 UCLASS()
@@ -41,6 +42,9 @@ public:
 	void DeleteCells();
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road Settings")
+	ERoadType RoadType = ERoadType::BaseRoad;
 
 
 };
