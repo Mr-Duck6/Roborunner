@@ -8,6 +8,9 @@
 #include "RoadTypes.h"
 #include "ActorBaseRoad.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(RoadLog, Log, All);
+
+
 UCLASS()
 class MYPROJECT_API AActorBaseRoad : public AActor
 {
@@ -45,6 +48,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road Settings")
 	ERoadType RoadType = ERoadType::BaseRoad;
+	int32 RoadID;
 
 
 };

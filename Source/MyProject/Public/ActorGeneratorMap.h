@@ -6,7 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "ActorBaseRoad.h"
 #include "PawnPlayer.h"
+#include "ActorBaseObject.h"
 #include "ActorGeneratorMap.generated.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(GeneratorMapLog, Log, All);
+
 
 UCLASS()
 class MYPROJECT_API AActorGeneratorMap : public AActor
@@ -29,6 +33,9 @@ public:
 	void DeleteRoad();
 	int32 ChoiceRoadToSpawn();
 
+	void SpawnFence(FVector SpawnLocation);
+	void DeleteFence();
+
 	void PlayerProgression();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
@@ -37,10 +44,19 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
 		TArray<AActorBaseRoad*> SpawnedRoad;
 
+	TArray<AActorBaseObject*> SpawnedFence;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
+		TSubclassOf<AActorBaseObject> TallFence;
+
 	int32 SafeRoadCounter;
 	int32 DangerRoadCounter;
 	int32 TurrelRoadCounter;
 
 	int32 ChoicedRoad;
 	bool CanBeDeleted;
+	const int32 InitialQuantityRoad = 30;
+	FVector SpawnRoadLocation;
+
+	FVector DistanceBetweenFence;
+
 };

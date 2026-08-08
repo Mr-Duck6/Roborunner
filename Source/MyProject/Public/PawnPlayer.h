@@ -14,6 +14,8 @@ class USceneComponent;
 class UCameraComponent;
 class USpringArmComponent;
 
+DECLARE_LOG_CATEGORY_EXTERN(PlayerLog, Log, All);
+
 
 UCLASS()
 class MYPROJECT_API APawnPlayer : public APawn
@@ -48,16 +50,18 @@ public:
 	void CeckTargetCell(int32 RoadNum, int32 CellNum);
 
 	void MoveForward();
-	void Backward();
+	void MoveBackward();
 	void MoveLeft();
 	void MoveRight();
 
 	int32 PlayerRoadLocation;
 	int32 PlayerCellLocation;
-	int32 OneStep = 100;
-	bool CanMove;
 
 	int32 TargetRoad;
 	int32 TargetCell;
+
+	const int32 OneStep = 100;
+	const FVector NeededZCord = {0,0,50};
+	bool CanMove;
 
 };
