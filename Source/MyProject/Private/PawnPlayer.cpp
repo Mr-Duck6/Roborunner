@@ -13,10 +13,10 @@ DEFINE_LOG_CATEGORY(PlayerLog);
 
 APawnPlayer::APawnPlayer()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	PlayerRoadLocation = 0;
-	PlayerCellLocation = 6;
+	PlayerCellLocation = 5;
 	CanMove = true;
 
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
@@ -36,15 +36,29 @@ void APawnPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AActorGeneratorMap* Map = Cast<AActorGeneratorMap>(UGameplayStatics::GetActorOfClass(GetWorld(), AActorGeneratorMap::StaticClass()));
+	CachedMapGenerator = Cast<AActorGeneratorMap>(UGameplayStatics::GetActorOfClass(GetWorld(), AActorGeneratorMap::StaticClass()));
 
-	if (IsValid(Map))
+	if (!CachedMapGenerator)
 	{
-		Map->SpawnedRoad[0]->SpawnedCell[6]->CellCenterLocation;
-		FVector StartLocation;
-		SetActorLocation(StartLocation);
+		UE_LOG(PlayerLog, Error, TEXT("CachedMapGenerator not found"));
+		return;
 	}
-	
+
+	if (CachedMapGenerator->SpawnedRoad.IsValidIndex(0) &&
+		CachedMapGenerator->SpawnedRoad[0] &&
+		CachedMapGenerator->SpawnedRoad[0]->SpawnedCell.IsValidIndex(6))
+	{
+		auto CurrentCell = CachedMapGenerator->SpawnedRoad[0]->SpawnedCell[6];
+		if (CurrentCell)
+		{
+			FVector StartLocation = CurrentCell->CellCenterLocation;
+			SetActorLocation(StartLocation);
+		}
+	}
+	else
+	{
+		UE_LOG(PlayerLog, Warning, TEXT("The map has not yet been generated."));
+	}
 }
 
 void APawnPlayer::Tick(float DeltaTime)
@@ -64,84 +78,51 @@ void APawnPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 }
 
-void APawnPlayer::CheckCollision(FVector MoveDirection)
-{
-
-	FVector Start = GetActorLocation();
-	FVector End = Start + MoveDirection;
-
-	FCollisionQueryParams CollisionParams;
-	CollisionParams.AddIgnoredActor(this);
-	FHitResult HitInfo;
-
-	bool bHit = GetWorld()->LineTraceSingleByChannel(HitInfo, Start, End, ECC_Visibility, CollisionParams);
-
-	if (!bHit)
-	{
-		CanMove = true;
-	}
-	else
-	{
-		CanMove = false;
-	}
-
-}
-
 void APawnPlayer::CeckTargetCell(int32 RoadNum, int32 CellNum)
 {
-	AActorGeneratorMap* Map = Cast<AActorGeneratorMap>(UGameplayStatics::GetActorOfClass(GetWorld(), AActorGeneratorMap::StaticClass()));
+	CanMove = false;
 
-	if (RoadNum < 0 || CellNum < 0)
+	if (!IsValid(CachedMapGenerator) || RoadNum < 0 || CellNum < 0) return;
+
+	AActorBaseRoad* TargetRoadActor = CachedMapGenerator->GetRoadByID(RoadNum);
+
+	if (IsValid(TargetRoadActor) && TargetRoadActor->SpawnedCell.IsValidIndex(CellNum))
 	{
-		UE_LOG(PlayerLog,Log,TEXT("RoadNum is: %i, CellNum is: %i. Function has been returned"), RoadNum,CellNum);
-		return;
-	}
-
-	if (Map->SpawnedRoad.IsValidIndex(RoadNum))
-	{
-		auto CurrentRoad = Map->SpawnedRoad[RoadNum];
-
-		if (CurrentRoad != nullptr)
+		auto CurrentCell = TargetRoadActor->SpawnedCell[CellNum];
+		if (IsValid(CurrentCell))
 		{
-			if (CurrentRoad->SpawnedCell.IsValidIndex(CellNum))
-			{
-				auto CurrentCell = CurrentRoad->SpawnedCell[CellNum];
-
-				if (CurrentCell != nullptr)
-				{
-					bool IsFreeCell = Map->SpawnedRoad[RoadNum]->SpawnedCell[CellNum]->Occupied;
-
-					if (!IsFreeCell)
-					{
-						CanMove = true;
-					}
-				}
-			}
+			CanMove = !CurrentCell->Occupied;
 		}
 	}
-
 }
 
 void APawnPlayer::MoveForward()
 {
 	UE_LOG(PlayerLog, Display, TEXT("Function MoveForward called"));
-	FVector Direction(0, 100, 0);
+
+	CanMove = false;
 	TargetRoad = PlayerRoadLocation + 1;
 
-	CheckCollision(Direction);
 	CeckTargetCell(TargetRoad, PlayerCellLocation);
 
 	UE_LOG(PlayerLog, Log, TEXT("CanMove is: %s"), CanMove ? TEXT("true") : TEXT("false"));
 	if (CanMove)
 	{
-		AActorGeneratorMap* Map = Cast<AActorGeneratorMap>(UGameplayStatics::GetActorOfClass(GetWorld(), AActorGeneratorMap::StaticClass()));
 
-		if (IsValid(Map))
+		if (IsValid(CachedMapGenerator))
 		{
-			PlayerRoadLocation = TargetRoad;
-			FVector NewLocation = Map->SpawnedRoad[TargetRoad]->SpawnedCell[PlayerCellLocation]->CellCenterLocation + NeededZCord;
-			UE_LOG(PlayerLog, Display, TEXT("Player move forward \n New location is: %s"), *NewLocation.ToString());
-			SetActorLocation(NewLocation);
+			AActorBaseRoad* TargetActorRoad = CachedMapGenerator->GetRoadByID(TargetRoad);
+
+			if (IsValid(TargetActorRoad) && TargetActorRoad->SpawnedCell.IsValidIndex(PlayerCellLocation))
+			{
+				auto TargetCellObj = TargetActorRoad->SpawnedCell[PlayerCellLocation];
+				if (IsValid(TargetCellObj))
+				{
+					PlayerRoadLocation = TargetRoad;
+					FVector NewLocation = TargetCellObj->CellCenterLocation + NeededZCord;
+					SetActorLocation(NewLocation);
+				}
+			}
 		}
 	}
 }
@@ -149,74 +130,104 @@ void APawnPlayer::MoveForward()
 void APawnPlayer::MoveBackward()
 {
 	UE_LOG(PlayerLog, Display, TEXT("Function MoveBackward called"));
-	FVector Direction(0, -100, 0);
+
+	CanMove = false;
 	TargetRoad = PlayerRoadLocation - 1;
 
-	CheckCollision(Direction);
 	CeckTargetCell(TargetRoad, PlayerCellLocation);
 
 	UE_LOG(PlayerLog, Log, TEXT("CanMove is: %s"), CanMove ? TEXT("true") : TEXT("false"));
 	if (CanMove)
 	{
-		AActorGeneratorMap* Map = Cast<AActorGeneratorMap>(UGameplayStatics::GetActorOfClass(GetWorld(), AActorGeneratorMap::StaticClass()));
 
-		if (IsValid(Map))
+		if (IsValid(CachedMapGenerator))
 		{
-			UE_LOG(PlayerLog, Display, TEXT("Player move backward"));
-			PlayerRoadLocation = TargetRoad;
-			FVector NewLocation = Map->SpawnedRoad[TargetRoad]->SpawnedCell[PlayerCellLocation]->CellCenterLocation + NeededZCord;
-			UE_LOG(PlayerLog, Display, TEXT("Player move forward \n New location is: %s"), *NewLocation.ToString());
-			SetActorLocation(NewLocation);
+			AActorBaseRoad* TargetActorRoad = CachedMapGenerator->GetRoadByID(TargetRoad);
+
+			if (IsValid(TargetActorRoad) && TargetActorRoad->SpawnedCell.IsValidIndex(PlayerCellLocation))
+			{
+				auto TargetCellObj = TargetActorRoad->SpawnedCell[PlayerCellLocation];
+				if (IsValid(TargetCellObj))
+				{
+					PlayerRoadLocation = TargetRoad;
+					FVector NewLocation = TargetCellObj->CellCenterLocation + NeededZCord;
+					SetActorLocation(NewLocation);
+				}
+			}
 		}
 	}
 }
 
 void APawnPlayer::MoveLeft()
 {
+	CanMove = false;
+
 	UE_LOG(PlayerLog, Display, TEXT("Function MoveLeft called"));
-	FVector Direction(-100, 0, 0);
 	TargetCell = PlayerCellLocation - 1;
 
-	CheckCollision(Direction);
 	CeckTargetCell(PlayerRoadLocation, TargetCell);
 
 	UE_LOG(PlayerLog, Log, TEXT("CanMove is: %s"), CanMove ? TEXT("true") : TEXT("false"));
 	if (CanMove)
 	{
-		AActorGeneratorMap* Map = Cast<AActorGeneratorMap>(UGameplayStatics::GetActorOfClass(GetWorld(), AActorGeneratorMap::StaticClass()));
 
-		if (IsValid(Map))
+		if (IsValid(CachedMapGenerator))
 		{
-			UE_LOG(PlayerLog, Display, TEXT("Player move left"));
-			PlayerCellLocation = TargetCell;
-			FVector NewLocation = Map->SpawnedRoad[PlayerRoadLocation]->SpawnedCell[TargetCell]->CellCenterLocation + NeededZCord;
-			UE_LOG(PlayerLog, Display, TEXT("Player move forward \n New location is: %s"), *NewLocation.ToString());
-			SetActorLocation(NewLocation);
+			AActorBaseRoad* CurrentRoadActor = CachedMapGenerator->GetRoadByID(PlayerRoadLocation);
+
+			if (IsValid(CurrentRoadActor) && CurrentRoadActor->SpawnedCell.IsValidIndex(TargetCell))
+			{
+				auto TargetCellObj = CurrentRoadActor->SpawnedCell[TargetCell];
+				if (IsValid(TargetCellObj))
+				{
+					UE_LOG(PlayerLog, Display, TEXT("Player move left"));
+					PlayerCellLocation = TargetCell;
+
+					FVector NewLocation = TargetCellObj->CellCenterLocation + NeededZCord;
+					UE_LOG(PlayerLog, Display, TEXT("Player new location is: %s"), *NewLocation.ToString());
+					SetActorLocation(NewLocation);
+				}
+			}
 		}
 	}
 }
 
 void APawnPlayer::MoveRight()
 {
+	CanMove = false;
+
 	UE_LOG(PlayerLog, Display, TEXT("Function MoveRight called"));
-	FVector Direction(100, 0, 0);
 	TargetCell = PlayerCellLocation + 1;
 
-	CheckCollision(Direction);
 	CeckTargetCell(PlayerRoadLocation, TargetCell);
 
 	UE_LOG(PlayerLog, Log, TEXT("CanMove is: %s"), CanMove ? TEXT("true") : TEXT("false"));
 	if (CanMove)
 	{
-		AActorGeneratorMap* Map = Cast<AActorGeneratorMap>(UGameplayStatics::GetActorOfClass(GetWorld(), AActorGeneratorMap::StaticClass()));
-
-		if (IsValid(Map))
+		if (IsValid(CachedMapGenerator))
 		{
-			UE_LOG(PlayerLog, Display, TEXT("Player move right"));
-			PlayerCellLocation = TargetCell;
-			FVector NewLocation = Map->SpawnedRoad[PlayerRoadLocation]->SpawnedCell[TargetCell]->CellCenterLocation + NeededZCord;
-			UE_LOG(PlayerLog, Display, TEXT("Player move forward \n New location is: %s"), *NewLocation.ToString());
-			SetActorLocation(NewLocation);
+			AActorBaseRoad* CurrentRoadActor = CachedMapGenerator->GetRoadByID(PlayerRoadLocation);
+
+			if (IsValid(CurrentRoadActor) && CurrentRoadActor->SpawnedCell.IsValidIndex(TargetCell))
+			{
+				auto TargetCellObj = CurrentRoadActor->SpawnedCell[TargetCell];
+				if (IsValid(TargetCellObj))
+				{
+					UE_LOG(PlayerLog, Display, TEXT("Player move right"));
+					PlayerCellLocation = TargetCell;
+
+					FVector NewLocation = TargetCellObj->CellCenterLocation + NeededZCord;
+					UE_LOG(PlayerLog, Display, TEXT("Player new location is: %s"), *NewLocation.ToString());
+					SetActorLocation(NewLocation);
+				}
+			}
 		}
 	}
-} 
+}
+
+void APawnPlayer::Death()
+{
+	UE_LOG(PlayerLog, Display, TEXT("Death function called"));
+
+
+}

@@ -1,5 +1,4 @@
 
-
 #include "ActorSafeRoad.h"
 #include "Kismet/GameplayStatics.h"
 #include "ActorGeneratorMap.h"
@@ -18,7 +17,6 @@ void AActorSafeRoad::BeginPlay()
 
 	SpawnObject();
 
-
 }
 
 void AActorSafeRoad::Tick(float DeltaTime)
@@ -29,17 +27,18 @@ void AActorSafeRoad::Tick(float DeltaTime)
 
 void AActorSafeRoad::SpawnObject()
 {
+    int32 LocalSpawnedCounter = 0;
+
     for (int32 i = 0; i < SpawnedCell.Num(); i++)
     {
+        if (LocalSpawnedCounter >= MaxObjectsInRow)//Limit
+        {
+            return;
+        }
+
         bool bCreateObject = FMath::RandBool();
 
-		if (SpawnedObjectsCounter >= MaxObjectsInRow)//Limit to spawn in one row
-		{
-			SpawnedObjectsCounter = 0;
-			return;
-		}
-
-        if (bCreateObject && IsValid(SpawnedCell[i]))
+        if (bCreateObject && IsValid(SpawnedCell[i]))//Spawn random object in random cell
         {
             int32 SelectedIndex = ChoiceObjectToSpawn();
 
@@ -48,15 +47,14 @@ void AActorSafeRoad::SpawnObject()
                 FVector SpawnLocation = SpawnedCell[i]->CellCenterLocation;
                 FRotator SpawnRotation = FRotator::ZeroRotator;
 
-                AActorBaseObject* NewObject = GetWorld()->SpawnActor<AActorBaseObject>(AllBPObject[SelectedIndex],SpawnLocation,
-                    SpawnRotation);
+                AActorBaseObject* NewObject = GetWorld()->SpawnActor<AActorBaseObject>(
+                    AllBPObject[SelectedIndex], SpawnLocation, SpawnRotation);
 
                 if (NewObject)
                 {
-                    UE_LOG(RoadLog, Log, TEXT("Spawned %s object in %s."), *NewObject->GetName(), *SpawnLocation.ToString());
                     SpawnedObjects.Add(NewObject);
-					SpawnedCell[i]->Occupied = true;
-					SpawnedObjectsCounter++;
+                    SpawnedCell[i]->Occupied = true;
+                    LocalSpawnedCounter++;
                 }
             }
         }
@@ -65,24 +63,25 @@ void AActorSafeRoad::SpawnObject()
 
 void AActorSafeRoad::DeleteObjects()
 {
-	for (int32 i=0 ;i<RoadLenght; i++)
-	{
-		if (SpawnedObjects.IsValidIndex(i))
-		{
-			auto CurrentObject = SpawnedObjects[i];
-			if (CurrentObject != nullptr)
-			{
-				UE_LOG(RoadLog, Log, TEXT("Delete object: %s"), *CurrentObject->GetName());
-				CurrentObject->Destroy();
-				SpawnedObjects.RemoveAt(i);
-			}
-		}
-	}
-	SpawnedObjects.Empty();
+    for (AActorBaseObject* Obj : SpawnedObjects)
+    {
+        if (IsValid(Obj))
+        {
+            UE_LOG(RoadLog, Log, TEXT("Delete object: %s"), *Obj->GetName());
+            Obj->Destroy();
+        }
+    }
+
+    SpawnedObjects.Empty();
 }
 
-int32 AActorSafeRoad::ChoiceObjectToSpawn()//Choise object to spawn (now only fence)
+int32 AActorSafeRoad::ChoiceObjectToSpawn()//Choise object to spawn
 {
+    if (AllBPObject.Num() == 0)
+    {
+        return INDEX_NONE;
+    }
+
 	ChoicedObject = FMath::RandRange(0, AllBPObject.Num() - 1);
 	UE_LOG(RoadLog, Log, TEXT("Choice object: %s"), *AllBPObject[ChoicedObject]->GetName());
 	return ChoicedObject;

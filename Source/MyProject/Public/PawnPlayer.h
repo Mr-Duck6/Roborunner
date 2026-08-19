@@ -46,14 +46,15 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void CheckCollision(FVector MoveDirection);
 	void CeckTargetCell(int32 RoadNum, int32 CellNum);
 
+	//Movement function
 	void MoveForward();
 	void MoveBackward();
 	void MoveLeft();
 	void MoveRight();
 
+	//Player location
 	int32 PlayerRoadLocation;
 	int32 PlayerCellLocation;
 
@@ -64,4 +65,12 @@ public:
 	const FVector NeededZCord = {0,0,50};
 	bool CanMove;
 
+protected:
+
+	UPROPERTY()
+		class AActorGeneratorMap* CachedMapGenerator = nullptr;
+
+public:
+	//Update player status
+	void Death();
 };

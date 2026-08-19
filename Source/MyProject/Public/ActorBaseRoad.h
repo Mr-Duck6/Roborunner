@@ -35,8 +35,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 		TSubclassOf<AActorCell> CellBP;
-	const int32 RoadLenght = 11;
 	TArray<AActorCell*> SpawnedCell;
+
 	int32 CellStep;
 	int32 StartSpawn;
 	int32 EndSpawn;
@@ -46,9 +46,12 @@ public:
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road Settings")
-	ERoadType RoadType = ERoadType::BaseRoad;
-	int32 RoadID;
 
+	//Road info
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Road parametrs")
+		int32 RoadID;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road parametrs")
+		ERoadType RoadType = ERoadType::BaseRoad;
+	const int32 RoadLenght = 11;
 
 };

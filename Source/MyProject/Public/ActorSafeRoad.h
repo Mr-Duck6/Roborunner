@@ -1,5 +1,4 @@
 
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -29,6 +28,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
 	TArray<TSubclassOf<AActorBaseObject>> AllBPObject;
+
 	TArray<AActorBaseObject*> SpawnedObjects;
 	
 	void SpawnObject();
@@ -38,7 +38,7 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	int32 ChoicedObject;
-	const int32 MaxObjectsInRow = 6;
+	const int32 MaxObjectsInRow = 3;
 	int32 SpawnedObjectsCounter;
 
 };

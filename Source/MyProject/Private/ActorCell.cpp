@@ -8,7 +8,6 @@ AActorCell::AActorCell()
 	PrimaryActorTick.bCanEverTick = false;
 
 
-	IsPlayerHere = false;
 	Occupied = false;
 
 }
