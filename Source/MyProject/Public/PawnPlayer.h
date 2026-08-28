@@ -42,6 +42,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -55,6 +56,7 @@ public:
 	void MoveRight();
 
 	//Player location
+	UPROPERTY(Visibleanywhere, BlueprintReadWrite)
 	int32 PlayerRoadLocation;
 	int32 PlayerCellLocation;
 
@@ -72,5 +74,7 @@ protected:
 
 public:
 	//Update player status
+
+	void PlayerRecordUpdate();
 	void Death();
 };

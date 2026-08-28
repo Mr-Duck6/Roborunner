@@ -120,12 +120,12 @@ void AActorDangerRoad::SpawnCar(int32 IndexPosition)
     if (RoadDirection == FVector::RightVector)//Move from left to right or right to left
     {
         SpawnRotator = FRotator::ZeroRotator;
-        SpawnLocation = GetActorLocation() + FVector(0,CarPosition[IndexPosition],0);
+        SpawnLocation = GetActorLocation() + FVector(0,CarPosition[IndexPosition],50);
     }
     else
     {
         SpawnRotator = FRotator(0.f, 180.f, 0.f);
-        SpawnLocation = GetActorLocation() + FVector(0, CarPosition[IndexPosition] * -1, 0);
+        SpawnLocation = GetActorLocation() + FVector(0, CarPosition[IndexPosition] * -1, 50);
     }
 
     int32 RandCarIndex = ChoiseCarToSpawn();

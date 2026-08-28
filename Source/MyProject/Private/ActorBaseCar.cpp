@@ -78,7 +78,7 @@ void AActorBaseCar::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 {
 	if (OtherActor && (OtherActor != this))
 	{
-		UE_LOG(CarLog, Display, TEXT("Trigger out"));
+		//UE_LOG(CarLog, Display, TEXT("Trigger out"));
 		return;
 	}
 }

@@ -42,6 +42,7 @@ void AActorGeneratorMap::Tick(float DeltaTime)
 
 }
 
+
 void AActorGeneratorMap::SpawnRoad()
 {
 	UE_LOG(GeneratorMapLog, Display, TEXT("FUNCTION SpawnRoad called"));
@@ -99,6 +100,7 @@ int32 AActorGeneratorMap::ChoiceRoadToSpawn()
 
 	ChoicedRoad = FMath::RandRange(0, AllBPRoads.Num()-1);
 	UE_LOG(GeneratorMapLog, Display, TEXT("Chosed num is %i, road for spawn is: %s"), ChoicedRoad, *GetNameSafe(AllBPRoads[ChoicedRoad]));
+
 
 	if(SafeRoadCounter == MaxSafeRoadInRow)//Limits
 	{

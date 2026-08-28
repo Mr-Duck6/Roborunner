@@ -6,16 +6,17 @@
 #include "GameFramework/SaveGame.h"
 #include "MySaveGame.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class MYPROJECT_API UMySaveGame : public USaveGame
 {
 	GENERATED_BODY()
 
-private:
-	int32 PalyerRecord;
-	int32 LastRecordLineID;
+public:
+
+    UMySaveGame();
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SaveData")
+        int32 PlayerRecord;
 	
 };

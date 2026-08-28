@@ -6,6 +6,8 @@
 #include "Camera/CameraComponent.h"
 #include "ActorGeneratorMap.h"
 #include "Kismet/GameplayStatics.h"
+#include "MySaveGame.h"
+#include "MyGameInstance.h"
 #include "GameFramework/SpringArmComponent.h"
 
 DEFINE_LOG_CATEGORY(PlayerLog);
@@ -13,7 +15,7 @@ DEFINE_LOG_CATEGORY(PlayerLog);
 
 APawnPlayer::APawnPlayer()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	PlayerRoadLocation = 0;
 	PlayerCellLocation = 5;
@@ -51,7 +53,7 @@ void APawnPlayer::BeginPlay()
 		auto CurrentCell = CachedMapGenerator->SpawnedRoad[0]->SpawnedCell[6];
 		if (CurrentCell)
 		{
-			FVector StartLocation = CurrentCell->CellCenterLocation;
+			FVector StartLocation = CurrentCell->CellCenterLocation + FVector(0,0,50);
 			SetActorLocation(StartLocation);
 		}
 	}
@@ -225,9 +227,32 @@ void APawnPlayer::MoveRight()
 	}
 }
 
+void APawnPlayer::PlayerRecordUpdate()
+{
+	UMyGameInstance* GameInstance = Cast<UMyGameInstance>(GetGameInstance());
+
+	if (GameInstance && GameInstance->CurrentSave)
+	{
+		int32 Record = GameInstance->CurrentSave->PlayerRecord;
+
+		if (PlayerRoadLocation > Record)
+		{
+			GameInstance->SaveGame(PlayerRoadLocation);
+		}
+
+	}
+}
+
 void APawnPlayer::Death()
 {
 	UE_LOG(PlayerLog, Display, TEXT("Death function called"));
 
+	PlayerRecordUpdate();
 
+	UMyGameInstance* GameInstance = Cast<UMyGameInstance>(GetGameInstance());
+
+	if (GameInstance)
+	{
+		GameInstance->ReturnPlayerToMenu();
+	}
 }
