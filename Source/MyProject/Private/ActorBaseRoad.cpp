@@ -28,7 +28,7 @@ void AActorBaseRoad::BeginPlay()
 	Super::BeginPlay();
 
 	GeneratCells();
-	
+	SpawnEdgeObjects();
 }
 
 void AActorBaseRoad::Tick(float DeltaTime)
@@ -59,6 +59,7 @@ void AActorBaseRoad::GeneratCells()
 
 }
 
+
 void AActorBaseRoad::DeleteCells()
 {
 	for (AActorCell* Cell : SpawnedCell)
@@ -72,9 +73,50 @@ void AActorBaseRoad::DeleteCells()
 	SpawnedCell.Empty();
 }
 
+void AActorBaseRoad::SpawnEdgeObjects()
+{
+	float YStep = 70;
+
+	if (SpawnedCell.Num() == 0 || !EdgeObjectBP)
+	{
+		UE_LOG(RoadLog, Warning, TEXT("Cell array not haveing needed position"));
+		return;
+	}
+
+	FVector LeftSpawnLocation = SpawnedCell[0]->CellCenterLocation - FVector(0,YStep,0);
+	FVector RightSpawnLocation = SpawnedCell.Last()->CellCenterLocation + FVector(0, YStep, 0);
+
+	FRotator SpawnRotation = FRotator::ZeroRotator;
+
+	AActorBaseObject* LEdgeObject = GetWorld()->SpawnActor<AActorBaseObject>(EdgeObjectBP,LeftSpawnLocation,SpawnRotation);
+	AActorBaseObject* REdgeObject = GetWorld()->SpawnActor<AActorBaseObject>(EdgeObjectBP, RightSpawnLocation, SpawnRotation);
+	if (LEdgeObject)
+	{
+		SpawnedEdgeObjects.Add(LEdgeObject);
+	}
+
+	if (REdgeObject)
+	{
+		SpawnedEdgeObjects.Add(REdgeObject);
+	}
+}
+
+void AActorBaseRoad::DeleteEdgeObjects()
+{
+	for (AActorBaseObject* EdgeObject : SpawnedEdgeObjects)
+	{
+		if (IsValid(EdgeObject))
+		{
+			EdgeObject->Destroy();
+		}
+	}
+	SpawnedEdgeObjects.Empty();
+}
+
 void AActorBaseRoad::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
 	DeleteCells();
+	DeleteEdgeObjects();
 }

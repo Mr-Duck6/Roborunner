@@ -31,6 +31,24 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+
+	UPROPERTY(Editanywhere,BlueprintReadWrite,Category = "Car")
+	TArray<TSubclassOf<AActorBaseCar>>AllBPCar;
+	TArray<AActorBaseCar*> SpawnedCar;
+
+	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "Car")
+	int32 LowSpeed = 200;
+	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "Car")
+	int32 MediumSpeed = 300;
+	UPROPERTY(Editanywhere, BlueprintReadWrite, Category = "Car")
+	int32 HighSpeed = 400;
+
+	TArray<int32>CarPosition;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+private:
+
 	FVector GetRandomDirection();
 	int32 ChoiseRoadSpeed();
 	int32 ChoiseCarToSpawn();
@@ -46,17 +64,5 @@ public:
 	int32 CarsOnRoad;
 
 	FVector SpawnLocation;
-
-	UPROPERTY(Editanywhere,BlueprintReadWrite,Category = "Car")
-	TArray<TSubclassOf<AActorBaseCar>>AllBPCar;
-	TArray<AActorBaseCar*> SpawnedCar;
-
-	const int32 LowSpeed = 200;
-	const int32 MediumSpeed = 300;
-	const int32 HighSpeed = 400;
-
-	TArray<int32>CarPosition;
-
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 };

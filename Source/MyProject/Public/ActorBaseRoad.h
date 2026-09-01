@@ -5,10 +5,10 @@
 #include "GameFramework/Actor.h"
 #include "ActorCell.h"
 #include "RoadTypes.h"
+#include "ActorBaseObject.h"
 #include "ActorBaseRoad.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(RoadLog, Log, All);
-
 
 UCLASS()
 class MYPROJECT_API AActorBaseRoad : public AActor
@@ -32,6 +32,9 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	void GeneratCells();
+	void DeleteCells();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 		TSubclassOf<AActorCell> CellBP;
 	TArray<AActorCell*> SpawnedCell;
@@ -40,17 +43,20 @@ public:
 	int32 StartSpawn;
 	int32 EndSpawn;
 
-	void GeneratCells();
-	void DeleteCells();
-
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
-
-
-	//Road info
+	void SpawnEdgeObjects();
+	void DeleteEdgeObjects();
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TSubclassOf<AActorBaseObject>EdgeObjectBP;
+	TArray<AActorBaseObject*>SpawnedEdgeObjects;
+	
+	//Road parameters
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Road parametrs")
 		int32 RoadID;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road parametrs")
 		ERoadType RoadType = ERoadType::BaseRoad;
 	const int32 RoadLenght = 11;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
+
 
 };

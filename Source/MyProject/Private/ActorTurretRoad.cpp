@@ -28,10 +28,6 @@ void AActorTurretRoad::SpawnTurret()
 	FRotator SpawnRotation = FRotator::ZeroRotator;
 
 	Turret = GetWorld()->SpawnActor<AActorTurret>(TurretBP,SpawnLocation,SpawnRotation);
-	if (Turret)
-	{
-		UE_LOG(RoadLog, Display, TEXT("Turret spawned"));
-	}
 }
 
 void AActorTurretRoad::DeleteTurret()

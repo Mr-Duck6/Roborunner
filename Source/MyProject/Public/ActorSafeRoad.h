@@ -30,15 +30,19 @@ public:
 	TArray<TSubclassOf<AActorBaseObject>> AllBPObject;
 
 	TArray<AActorBaseObject*> SpawnedObjects;
-	
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
+	int32 MaxObjectsInRow = 3;
+
+private:
 	void SpawnObject();
 	void DeleteObjects();
 	int32 ChoiceObjectToSpawn();
 
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
 	int32 ChoicedObject;
-	const int32 MaxObjectsInRow = 3;
 	int32 SpawnedObjectsCounter;
+
 
 };

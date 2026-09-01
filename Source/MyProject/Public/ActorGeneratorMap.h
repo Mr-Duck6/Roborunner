@@ -31,11 +31,8 @@ public:
 
 	void PlayerProgression();
 
-
-	//Road
 	void SpawnRoad();
 	void DeleteRoad();
-	int32 ChoiceRoadToSpawn();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
 		TArray<TSubclassOf<AActorBaseRoad>> AllBPRoads;
@@ -46,21 +43,27 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Map Generation")
 		int32 StartSpawnThreshold = 15;
 
-	int32 ChoicedRoad;
-	const int32 InitialQuantityRoad = 30;
-	FVector SpawnRoadLocation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
+	 int32 MaxSafeRoadInRow = 3;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
+	 int32 MaxDangerRoadInRow = 4;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
+	 int32 MaxTurrelRoadInRow = 2;
+
+	AActorBaseRoad* GetRoadByID(int32 TargetID);
+	int32 NextRoadID;
+	int32 NextTriggerLocation = 15;
+	int32 CurrentPlayerLocation;
+
+private:
+	int32 ChoiceRoadToSpawn();
 
 	int32 SafeRoadCounter;
 	int32 DangerRoadCounter;
 	int32 TurrelRoadCounter;
 
-	const int32 MaxSafeRoadInRow = 3;
-	const int32 MaxDangerRoadInRow = 4;
-	const int32 MaxTurrelRoadInRow = 2;
+	int32 ChoicedRoad;
+	const int32 InitialQuantityRoad = 30;
+	FVector SpawnRoadLocation;
 
-	//Spawn new road
-	AActorBaseRoad* GetRoadByID(int32 TargetID);
-	int32 NextRoadID;
-	int32 NextTriggerLocation = 15;
-	int32 CurrentPlayerLocation;
 };

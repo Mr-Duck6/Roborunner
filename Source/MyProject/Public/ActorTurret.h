@@ -71,7 +71,6 @@ public:
 
 	void RedyForSearch();
 
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 TurretTraceDistance;
 };

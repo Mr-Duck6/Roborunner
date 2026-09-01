@@ -12,7 +12,6 @@
 
 DEFINE_LOG_CATEGORY(PlayerLog);
 
-
 APawnPlayer::APawnPlayer()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -21,16 +20,14 @@ APawnPlayer::APawnPlayer()
 	PlayerCellLocation = 5;
 	CanMove = true;
 
+	CurrentRecord = PlayerRoadLocation;
+
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	SetRootComponent(Root);
 
 	PlayerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMesh"));
-	PlayerSpingArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("PlayerSpringArm"));
-	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
 
 	PlayerMesh->SetupAttachment(Root);
-	PlayerSpingArm->SetupAttachment(Root);
-	PlayerCamera->SetupAttachment(PlayerSpingArm);
 
 }
 
@@ -38,14 +35,14 @@ void APawnPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//Get generator map
 	CachedMapGenerator = Cast<AActorGeneratorMap>(UGameplayStatics::GetActorOfClass(GetWorld(), AActorGeneratorMap::StaticClass()));
-
 	if (!CachedMapGenerator)
 	{
 		UE_LOG(PlayerLog, Error, TEXT("CachedMapGenerator not found"));
 		return;
 	}
-
+	//Check base spawned objects
 	if (CachedMapGenerator->SpawnedRoad.IsValidIndex(0) &&
 		CachedMapGenerator->SpawnedRoad[0] &&
 		CachedMapGenerator->SpawnedRoad[0]->SpawnedCell.IsValidIndex(6))
@@ -53,6 +50,7 @@ void APawnPlayer::BeginPlay()
 		auto CurrentCell = CachedMapGenerator->SpawnedRoad[0]->SpawnedCell[6];
 		if (CurrentCell)
 		{
+			//Set start position
 			FVector StartLocation = CurrentCell->CellCenterLocation + FVector(0,0,50);
 			SetActorLocation(StartLocation);
 		}
@@ -60,6 +58,13 @@ void APawnPlayer::BeginPlay()
 	else
 	{
 		UE_LOG(PlayerLog, Warning, TEXT("The map has not yet been generated."));
+	}
+
+	//Get game instance for getting max record
+	UMyGameInstance* GI = Cast<UMyGameInstance>(GetGameInstance());
+	if (GI && GI->CurrentSave)
+	{
+		MaxRecord = GI->CurrentSave->PlayerRecord;
 	}
 }
 
@@ -120,6 +125,8 @@ void APawnPlayer::MoveForward()
 				auto TargetCellObj = TargetActorRoad->SpawnedCell[PlayerCellLocation];
 				if (IsValid(TargetCellObj))
 				{
+					RecordInWPB();
+
 					PlayerRoadLocation = TargetRoad;
 					FVector NewLocation = TargetCellObj->CellCenterLocation + NeededZCord;
 					SetActorLocation(NewLocation);
@@ -227,19 +234,18 @@ void APawnPlayer::MoveRight()
 	}
 }
 
-void APawnPlayer::PlayerRecordUpdate()
+void APawnPlayer::SaveNewRecoed()//Save current player road location if this move the oldest record
 {
-	UMyGameInstance* GameInstance = Cast<UMyGameInstance>(GetGameInstance());
+	UMyGameInstance* GI = Cast<UMyGameInstance>(GetGameInstance());
 
-	if (GameInstance && GameInstance->CurrentSave)
+	if (GI && GI->CurrentSave)
 	{
-		int32 Record = GameInstance->CurrentSave->PlayerRecord;
+		int32 Record = GI->CurrentSave->PlayerRecord;
 
 		if (PlayerRoadLocation > Record)
 		{
-			GameInstance->SaveGame(PlayerRoadLocation);
+			GI->SaveGame(PlayerRoadLocation);
 		}
-
 	}
 }
 
@@ -247,12 +253,29 @@ void APawnPlayer::Death()
 {
 	UE_LOG(PlayerLog, Display, TEXT("Death function called"));
 
-	PlayerRecordUpdate();
+	SaveNewRecoed();
 
 	UMyGameInstance* GameInstance = Cast<UMyGameInstance>(GetGameInstance());
 
 	if (GameInstance)
 	{
 		GameInstance->ReturnPlayerToMenu();
+	}
+}
+
+void APawnPlayer::RecordInWPB()
+{
+	UE_LOG(PlayerLog, Display, TEXT("Function RecordInWPB called"));
+	CurrentRecord = FMath::Clamp(CurrentRecord, 0.f, MaxRecord);
+
+	if (PlayerRoadLocation < CurrentRecord)
+	{
+		UE_LOG(PlayerLog, Display, TEXT("PlayerRoadLocation less than CurrentRecord"));
+		return;
+	}
+	else
+	{
+		UE_LOG(PlayerLog, Log, TEXT("New CurrentRecord is: %f"), CurrentRecord);
+		CurrentRecord = PlayerRoadLocation;
 	}
 }
