@@ -48,9 +48,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxRecord;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float MoveCD;
+
 private:
 	//Movement
 	void CeckTargetCell(int32 RoadNum, int32 CellNum);
+
+	FTimerHandle MoveCDHandle;
+	bool bMoveCDOver;
 
 	void MoveForward();
 	void MoveBackward();
@@ -65,7 +71,7 @@ public:
 	int32 PlayerRoadLocation;
 	int32 PlayerCellLocation;
 
-	bool CanMove;
+	bool bCanMove;
 
 protected:
 	//World info

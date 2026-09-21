@@ -9,6 +9,7 @@ AActorGeneratorMap::AActorGeneratorMap()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	//Counters
 	SafeRoadCounter = 0;
 	DangerRoadCounter = 0;
 	TurrelRoadCounter = 0;
@@ -23,8 +24,8 @@ AActorGeneratorMap::AActorGeneratorMap()
 void AActorGeneratorMap::BeginPlay()
 {
 	Super::BeginPlay();
-
-
+	
+	//Spawn first 30 roads
 	NextTriggerLocation = StartSpawnThreshold + 1; 
 
 	for (int32 i = 0; i < InitialQuantityRoad; i++)
@@ -46,8 +47,15 @@ void AActorGeneratorMap::Tick(float DeltaTime)
 void AActorGeneratorMap::SpawnRoad()
 {
 	UE_LOG(GeneratorMapLog, Display, TEXT("FUNCTION SpawnRoad called"));
+
+	if (FirstRoadsCounter < FirstRoads)
+	{
+		FirstRoadsCounter++;
+		SpawnFirstRoad();
+		return;
+	}
+
 	FRotator SpawnRotation = FRotator::ZeroRotator;
-	FVector StepToSpawn = { 100, 0, 0 };
 
 	ChoiceRoadToSpawn();
 
@@ -73,7 +81,6 @@ void AActorGeneratorMap::SpawnRoad()
 			}
 		}
 	}
-
 }
 
 void AActorGeneratorMap::DeleteRoad()
@@ -101,8 +108,8 @@ int32 AActorGeneratorMap::ChoiceRoadToSpawn()
 	ChoicedRoad = FMath::RandRange(0, AllBPRoads.Num()-1);
 	UE_LOG(GeneratorMapLog, Display, TEXT("Chosed num is %i, road for spawn is: %s"), ChoicedRoad, *GetNameSafe(AllBPRoads[ChoicedRoad]));
 
-
-	if(SafeRoadCounter == MaxSafeRoadInRow)//Limits
+	//Limits
+	if(SafeRoadCounter == MaxSafeRoadInRow)
 	{
 		UE_LOG(GeneratorMapLog, Display, TEXT("Use of an exception: SafeRoadCounter == MaxSafeRoadInRow, SafeRoadCounter is: %i  "), SafeRoadCounter);
 		ChoicedRoad = 1;
@@ -118,7 +125,8 @@ int32 AActorGeneratorMap::ChoiceRoadToSpawn()
 		ChoicedRoad = 0;
 	}
 
-	switch (ChoicedRoad)//Case spawn
+	//Case spawn
+	switch (ChoicedRoad)
 	{
 	
 	case 0:
@@ -161,6 +169,31 @@ int32 AActorGeneratorMap::ChoiceRoadToSpawn()
 		DangerRoadCounter = 0;
 		TurrelRoadCounter = 0;
 		return ChoicedRoad;
+	}
+}
+
+void AActorGeneratorMap::SpawnFirstRoad()
+{
+	UE_LOG(GeneratorMapLog, Display, TEXT("Function SpawnFirstRoad called"));
+	FRotator SpawnRotation = FRotator::ZeroRotator;
+
+	if (IsValid(FirstRoadBP))
+	{
+		AActorBaseRoad* NewRoad = GetWorld()->SpawnActor<AActorBaseRoad>(FirstRoadBP, SpawnRoadLocation, SpawnRotation);
+		if (NewRoad)
+		{
+			NewRoad->RoadID = NextRoadID;
+			NextRoadID++;
+
+			UE_LOG(GeneratorMapLog, Display, TEXT("New road %i has been spawned in %s, Road %s"),
+				NewRoad->RoadID,
+				*SpawnRoadLocation.ToString(),
+				*UEnum::GetValueAsString(NewRoad->RoadType));
+
+				SpawnedRoad.Add(NewRoad);
+				SpawnRoadLocation += StepToSpawn;
+				NewRoad->RoadID++;
+		}
 	}
 }
 

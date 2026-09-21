@@ -161,6 +161,8 @@ void AActorDangerRoad::DeleteCar()
 
 void AActorDangerRoad::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+    Super::EndPlay(EndPlayReason);
+
     DeleteCar();
 }
 

@@ -52,7 +52,7 @@ void AActorBaseRoad::GeneratCells()
 		{
 			UE_LOG(RoadLog, Log, TEXT("Created cell in %s"), *SpawnLocation.ToString());
 			SpawnedCell.Add(NewCell);
-			DrawDebugPoint(GetWorld(), SpawnLocation + FVector(0, 0, 15), 10.f, FColor::Red, true, -1);
+			//DrawDebugPoint(GetWorld(), SpawnLocation + FVector(0, 0, 15), 10.f, FColor::Red, true, -1);
 		}
 		SpawnLocation += FVector(0, CellStep, 0);
 	}

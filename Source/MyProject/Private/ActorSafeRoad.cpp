@@ -27,6 +27,7 @@ void AActorSafeRoad::Tick(float DeltaTime)
 
 void AActorSafeRoad::SpawnObject()
 {
+
     int32 LocalSpawnedCounter = 0;
 
     for (int32 i = 0; i < SpawnedCell.Num(); i++)
@@ -85,7 +86,6 @@ int32 AActorSafeRoad::ChoiceObjectToSpawn()//Choise object to spawn
 	ChoicedObject = FMath::RandRange(0, AllBPObject.Num() - 1);
 	UE_LOG(RoadLog, Log, TEXT("Choice object: %s"), *AllBPObject[ChoicedObject]->GetName());
 	return ChoicedObject;
-
 }
 
 void AActorSafeRoad::EndPlay(const EEndPlayReason::Type EndPlayReason)

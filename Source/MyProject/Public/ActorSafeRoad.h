@@ -36,6 +36,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
 	int32 MaxObjectsInRow = 3;
 
+
+
 private:
 	void SpawnObject();
 	void DeleteObjects();
@@ -43,6 +45,5 @@ private:
 
 	int32 ChoicedObject;
 	int32 SpawnedObjectsCounter;
-
 
 };

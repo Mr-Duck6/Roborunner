@@ -64,7 +64,7 @@ void AActorBaseCar::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 
 	if (OtherActor && (OtherActor != this))
 	{
-		APawnPlayer* Player = Cast<APawnPlayer>((UGameplayStatics::GetActorOfClass(GetWorld(), APawnPlayer::StaticClass())));
+		Player = Cast<APawnPlayer>((UGameplayStatics::GetActorOfClass(GetWorld(), APawnPlayer::StaticClass())));
 		if (Player && OtherActor == Player)
 		{
 			UE_LOG(CarLog, Display, TEXT("Trigger on"));

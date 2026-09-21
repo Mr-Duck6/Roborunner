@@ -18,7 +18,8 @@ APawnPlayer::APawnPlayer()
 
 	PlayerRoadLocation = 0;
 	PlayerCellLocation = 5;
-	CanMove = true;
+	bMoveCDOver = true;
+	MoveCD = 0.2f;
 
 	CurrentRecord = PlayerRoadLocation;
 
@@ -87,7 +88,7 @@ void APawnPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 void APawnPlayer::CeckTargetCell(int32 RoadNum, int32 CellNum)
 {
-	CanMove = false;
+	bCanMove = false;
 
 	if (!IsValid(CachedMapGenerator) || RoadNum < 0 || CellNum < 0) return;
 
@@ -98,22 +99,22 @@ void APawnPlayer::CeckTargetCell(int32 RoadNum, int32 CellNum)
 		auto CurrentCell = TargetRoadActor->SpawnedCell[CellNum];
 		if (IsValid(CurrentCell))
 		{
-			CanMove = !CurrentCell->Occupied;
+			bCanMove = !CurrentCell->Occupied;
 		}
 	}
 }
+
 
 void APawnPlayer::MoveForward()
 {
 	UE_LOG(PlayerLog, Display, TEXT("Function MoveForward called"));
 
-	CanMove = false;
 	TargetRoad = PlayerRoadLocation + 1;
 
 	CeckTargetCell(TargetRoad, PlayerCellLocation);
 
-	UE_LOG(PlayerLog, Log, TEXT("CanMove is: %s"), CanMove ? TEXT("true") : TEXT("false"));
-	if (CanMove)
+	UE_LOG(PlayerLog, Log, TEXT("bCanMove is: %s"), bCanMove ? TEXT("true") : TEXT("false"));
+	if (bCanMove && bMoveCDOver)
 	{
 
 		if (IsValid(CachedMapGenerator))
@@ -130,6 +131,9 @@ void APawnPlayer::MoveForward()
 					PlayerRoadLocation = TargetRoad;
 					FVector NewLocation = TargetCellObj->CellCenterLocation + NeededZCord;
 					SetActorLocation(NewLocation);
+
+					bMoveCDOver = false;
+					GetWorldTimerManager().SetTimer(MoveCDHandle, [this] {bMoveCDOver = true; }, MoveCD, false);
 				}
 			}
 		}
@@ -140,13 +144,12 @@ void APawnPlayer::MoveBackward()
 {
 	UE_LOG(PlayerLog, Display, TEXT("Function MoveBackward called"));
 
-	CanMove = false;
 	TargetRoad = PlayerRoadLocation - 1;
 
 	CeckTargetCell(TargetRoad, PlayerCellLocation);
 
-	UE_LOG(PlayerLog, Log, TEXT("CanMove is: %s"), CanMove ? TEXT("true") : TEXT("false"));
-	if (CanMove)
+	UE_LOG(PlayerLog, Log, TEXT("bCanMove is: %s"), bCanMove ? TEXT("true") : TEXT("false"));
+	if (bCanMove)
 	{
 
 		if (IsValid(CachedMapGenerator))
@@ -169,15 +172,14 @@ void APawnPlayer::MoveBackward()
 
 void APawnPlayer::MoveLeft()
 {
-	CanMove = false;
-
 	UE_LOG(PlayerLog, Display, TEXT("Function MoveLeft called"));
+
 	TargetCell = PlayerCellLocation - 1;
 
 	CeckTargetCell(PlayerRoadLocation, TargetCell);
 
-	UE_LOG(PlayerLog, Log, TEXT("CanMove is: %s"), CanMove ? TEXT("true") : TEXT("false"));
-	if (CanMove)
+	UE_LOG(PlayerLog, Log, TEXT("bCanMove is: %s"), bCanMove ? TEXT("true") : TEXT("false"));
+	if (bCanMove)
 	{
 
 		if (IsValid(CachedMapGenerator))
@@ -203,15 +205,13 @@ void APawnPlayer::MoveLeft()
 
 void APawnPlayer::MoveRight()
 {
-	CanMove = false;
-
 	UE_LOG(PlayerLog, Display, TEXT("Function MoveRight called"));
 	TargetCell = PlayerCellLocation + 1;
 
 	CeckTargetCell(PlayerRoadLocation, TargetCell);
 
-	UE_LOG(PlayerLog, Log, TEXT("CanMove is: %s"), CanMove ? TEXT("true") : TEXT("false"));
-	if (CanMove)
+	UE_LOG(PlayerLog, Log, TEXT("bCanMove is: %s"), bCanMove ? TEXT("true") : TEXT("false"));
+	if (bCanMove)
 	{
 		if (IsValid(CachedMapGenerator))
 		{
