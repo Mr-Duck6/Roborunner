@@ -1,14 +1,15 @@
-# Temporary / Generated files
+# Unreal Engine Temporary Folders
 Binaries/
-DerivedDataCache/
 Intermediate/
 Saved/
+DerivedDataCache/
 Build/
-
-# IDE / Solution files
 .vs/
-.idea/
+
+# Visual Studio Files
 *.sln
 *.suo
-*.opensdf
-*.sdf
+*.user
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user

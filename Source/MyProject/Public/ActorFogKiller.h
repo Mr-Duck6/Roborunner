@@ -46,24 +46,15 @@ public:
 		void OnOverlapEnd(UPrimitiveComponent* OverlappedComp,AActor* OtherActor,
 			UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TickLog")
-		bool bVisibleTickLog;
-
-	int32 CurrentSpeed;
+	float CurrentSpeed;
 
 	UPROPERTY()
 		APawnPlayer* PlayerRef;
 
-private: 
+private:
+	float BaseSpeed = 70;
+	const float MaxSpeed = 500;
 
-	const int32 MinSpeed = 150;
-	const int32 MaxSpeed = 700;
-	const int32 SpeedDefferences = 20;
-
-	int32 OldDefference;
-
-	void ChangeSpeed();
-
-	FTimerHandle ChangeSpeedHandle;
+	void ChangeFogSpeed();
 
 };
