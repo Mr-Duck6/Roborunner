@@ -52,8 +52,9 @@ public:
 		APawnPlayer* PlayerRef;
 
 private:
-	float BaseSpeed = 70;
-	const float MaxSpeed = 500;
+	float BaseSpeed = 80;
+	const float MiddleSpeed = 150;
+	const float MaxSpeed = 300;
 
 	void ChangeFogSpeed();
 

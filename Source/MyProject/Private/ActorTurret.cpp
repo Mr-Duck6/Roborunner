@@ -3,6 +3,7 @@
 #include "ActorTurret.h"
 #include "PawnPlayer.h"
 #include "Kismet/GameplayStatics.h"
+#include "Math/ColorList.h"
 #include "DrawDebugHelpers.h"
 
 DEFINE_LOG_CATEGORY(TurretLog);
@@ -35,13 +36,17 @@ void AActorTurret::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Player = Cast<APawnPlayer>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	Player = Cast<APawnPlayer>(UGameplayStatics::GetPlayerPawn(GetWorld(),0));
+
+	Start = GetActorLocation() + FVector(0, 0, ZCordinate);
+	End = Start + (FVector::RightVector * TurretTraceDistance);
 
 	SetTurrelState(ETurretState::Search);
 }
 
 void AActorTurret::SetTurrelState(ETurretState NewState)
 {
+	//Clear all timers
 	GetWorldTimerManager().ClearTimer(SearchTimerHandle);
 	GetWorldTimerManager().ClearTimer(PrepareTimerHandle);
 	GetWorldTimerManager().ClearTimer(ShootIntervalHandle);
@@ -49,32 +54,27 @@ void AActorTurret::SetTurrelState(ETurretState NewState)
 	GetWorldTimerManager().ClearTimer(ReloadingTimerHandle);
 
 	CurrentState = NewState;
-	UE_LOG(TurretLog, Log, TEXT("Function SetTurretState called, new turret state %s"),*UEnum::GetValueAsString(CurrentState));
+	//UE_LOG(TurretLog, Log, TEXT("Function SetTurretState called, new turret state %s"),*UEnum::GetValueAsString(CurrentState));
 
 	switch (CurrentState)
 	{
 	case ETurretState::Search:
-
 		GetWorldTimerManager().SetTimer(SearchTimerHandle,this, &AActorTurret::Search, SearchIntervalTime, true);
-
 		break;
 
 	case ETurretState::Prepare:
-
 		GetWorldTimerManager().SetTimer(PrepareTimerHandle, this, &AActorTurret::PrepareForShoot, PrepareTime, false);
-
+		DrawDebugLine(GetWorld(), Start,End, FColor::Yellow, false, PrepareTime,0,3.f);
 		break;
 
 	case ETurretState::Shoot:
-
 		GetWorldTimerManager().SetTimer(ShootIntervalHandle, this, &AActorTurret::Shoot, ShootIntervalTime, true);
-
 		GetWorldTimerManager().SetTimer(ShootTimerHandle, this, &AActorTurret::Reloading, ShootTime, false);
 		break;
 
-
 	case ETurretState::Reloading:
 		GetWorldTimerManager().SetTimer(ReloadingTimerHandle, this, &AActorTurret::RedyForSearch, ReloadingTime, false);
+		DrawDebugLine(GetWorld(), Start, End, FColorList::DarkGreen, false, ReloadingTime, 0, 3.f);
 		break;
 
 	default:
@@ -92,11 +92,7 @@ void AActorTurret::Search()
 	//UE_LOG(TurretLog, Display, TEXT("Function Search called"));
 	if (!IsValid(Player)) return;
 
-	const int32 ZCordinate = 50;
-	FVector Start = GetActorLocation() + FVector(0,0,ZCordinate);
-	FVector End = Start + (FVector::RightVector * TurretTraceDistance);
-
-	//DrawDebugLine(GetWorld(),Start,End,FColor::Green,false,1.f,0,2.f);
+	DrawDebugLine(GetWorld(),Start,End,FColor::Green,false,1.f,0,2.f);
 
 	TArray<FHitResult> HitResults;
 	FCollisionQueryParams CollisionParams;
@@ -133,11 +129,7 @@ void AActorTurret::Shoot()
 	UE_LOG(TurretLog, Display, TEXT("Function Shoot called"));
 	if (!IsValid(Player)) return;
 
-	const int32 ZCordinate = 50;
-	FVector Start = GetActorLocation() + FVector(0, 0, ZCordinate);
-	FVector End = Start + (FVector::RightVector * TurretTraceDistance);
-
-	//DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.f, 0, 2.f);
+	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.5f, 0, 4.f);
 
 	TArray<FHitResult> HitResults;
 	FCollisionQueryParams CollisionParams;
@@ -166,7 +158,6 @@ void AActorTurret::Shoot()
 void AActorTurret::Reloading()
 {
 	UE_LOG(TurretLog, Display, TEXT("Function Reloading called"));
-
 	SetTurrelState(ETurretState::Reloading);
 }
 
@@ -186,4 +177,3 @@ void AActorTurret::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	GetWorldTimerManager().ClearTimer(ReloadingTimerHandle);
 
 }
-

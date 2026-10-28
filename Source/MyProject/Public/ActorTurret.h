@@ -37,11 +37,13 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 
 	UPROPERTY()
-	ETurretState CurrentState;
-	void SetTurrelState(ETurretState NewState);
+	class APawnPlayer* Player;
+
+protected:
 
 	UPROPERTY()
-		class APawnPlayer* Player;
+	ETurretState CurrentState;
+	void SetTurrelState(ETurretState NewState);
 
 
 	//Search
@@ -73,4 +75,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 TurretTraceDistance;
+
+		const int32 ZCordinate = 50;
+		FVector Start;
+		FVector End;
+
 };

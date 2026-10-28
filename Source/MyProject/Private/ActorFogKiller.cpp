@@ -21,7 +21,6 @@ AActorFogKiller::AActorFogKiller()
 	TriggerBox->SetupAttachment(FogMesh);
 
 	CurrentSpeed = BaseSpeed;
-	bVisibleTickLog = false;
 }
 
 void AActorFogKiller::BeginPlay()
@@ -45,11 +44,12 @@ void AActorFogKiller::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 	ChangeFogSpeed();
-	UE_LOG(FogKillerLog, Log, TEXT("Fog speed: %f"), CurrentSpeed);
 
 	FVector CurrentLocation = GetActorLocation();
 	FVector TargetLocation = CurrentLocation + FVector(CurrentSpeed * DeltaTime, 0.0f, 0.0f);
 	SetActorLocation(TargetLocation);
+
+
 }
 
 
@@ -76,7 +76,7 @@ void AActorFogKiller::OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
 
 void AActorFogKiller::ChangeFogSpeed()
 {
-	if (!PlayerRef)
+	if (!IsValid(PlayerRef))
 	{
 		UE_LOG(FogKillerLog, Display, TEXT("Player for fog not found"));
 		return;
@@ -85,10 +85,32 @@ void AActorFogKiller::ChangeFogSpeed()
 	float PlayerLoc = PlayerRef->PlayerRoadLocation;
 	float FogLoc = GetActorLocation().X;
 
-	float DistanceBetween = PlayerLoc - FogLoc;
-	DistanceBetween = FMath::Clamp(DistanceBetween, 0, PlayerLoc);
+	float DistanceBetween = PlayerLoc * 100 - FogLoc;
 
-	CurrentSpeed = FMath::Clamp(CurrentSpeed, BaseSpeed, MaxSpeed);
-	CurrentSpeed += DistanceBetween * 2;
+	CurrentSpeed = BaseSpeed;
+	float LastSpeed;
 
+	if (DistanceBetween >= 3000)
+	{
+		CurrentSpeed = MaxSpeed;
+		LastSpeed = MaxSpeed;
+	}
+	else if(DistanceBetween >= 1500)
+	{
+		CurrentSpeed = MiddleSpeed;
+		LastSpeed = MiddleSpeed;
+	}
+	else
+	{
+		CurrentSpeed = BaseSpeed;
+		LastSpeed = BaseSpeed;
+	}
+
+	//Speed log
+	if (CurrentSpeed != LastSpeed)
+	{
+		UE_LOG(FogKillerLog, Log, TEXT("New Fog speed is: %f"), CurrentSpeed);
+	}
+
+	//UE_LOG(FogKillerLog, Log, TEXT("Fog speed: %f,Player Road location: %f, Fog location %f, DistanceBetween: %f"), CurrentSpeed,PlayerLoc,FogLoc, DistanceBetween);
 }
