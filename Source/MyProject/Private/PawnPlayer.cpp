@@ -16,8 +16,7 @@ APawnPlayer::APawnPlayer()
 
 	PlayerRoadLocation = 0;
 	PlayerCellLocation = 5;
-	bMoveCDOver = true;
-	MoveCD = 0.2f;
+	MoveCoolDown = 0.2f;
 
 	CurrentRecord = PlayerRoadLocation;
 
@@ -88,7 +87,11 @@ void APawnPlayer::CeckTargetCell(int32 RoadNum, int32 CellNum)
 {
 	bCanMove = false;
 
-	if (!IsValid(CachedMapGenerator) || RoadNum < 0 || CellNum < 0) return;
+	if (!IsValid(CachedMapGenerator) || RoadNum < 0 || CellNum < 0)
+	{
+		UE_LOG(GeneratorMapLog, Error, TEXT("Base map elements not found. Possible issue: Road/Cell num for check < 0 "));
+		return;
+	}
 
 	AActorBaseRoad* TargetRoadActor = CachedMapGenerator->GetRoadByID(RoadNum);
 
@@ -109,12 +112,21 @@ void APawnPlayer::MoveForward()
 
 	TargetRoad = PlayerRoadLocation + 1;
 
-	CeckTargetCell(TargetRoad, PlayerCellLocation);
+	if (GetWorld()->GetTimerManager().IsTimerActive(MoveCoolDownHandle))//Check timer for cooldown is finished?
+	{
+		float RemainingTimer = GetWorld()->GetTimerManager().GetTimerRemaining(MoveCoolDownHandle);
+		UE_LOG(PlayerLog, Log, TEXT("The timer is not finished. Remaining time: %f"), RemainingTimer);
+		return;
+	}
+	else
+	{
+		UE_LOG(PlayerLog, Display, TEXT("The timer has finished"));
+		CeckTargetCell(TargetRoad, PlayerCellLocation);
+	}
 
 	UE_LOG(PlayerLog, Log, TEXT("bCanMove is: %s"), bCanMove ? TEXT("true") : TEXT("false"));
-	if (bCanMove && bMoveCDOver)
+	if (bCanMove)
 	{
-
 		if (IsValid(CachedMapGenerator))
 		{
 			AActorBaseRoad* TargetActorRoad = CachedMapGenerator->GetRoadByID(TargetRoad);
@@ -129,9 +141,8 @@ void APawnPlayer::MoveForward()
 					PlayerRoadLocation = TargetRoad;
 					FVector NewLocation = TargetCellObj->CellCenterLocation + NeededZCord;
 					SetActorLocation(NewLocation);
-
-					bMoveCDOver = false;
-					GetWorldTimerManager().SetTimer(MoveCDHandle, [this] {bMoveCDOver = true; }, MoveCD, false);
+					bCanMove = false;
+					GetWorldTimerManager().SetTimer(MoveCoolDownHandle, [this] {bCanMove = true; }, MoveCoolDown, false);
 				}
 			}
 		}
@@ -144,7 +155,17 @@ void APawnPlayer::MoveBackward()
 
 	TargetRoad = PlayerRoadLocation - 1;
 
-	CeckTargetCell(TargetRoad, PlayerCellLocation);
+	if (GetWorld()->GetTimerManager().IsTimerActive(MoveCoolDownHandle))//Check timer for cooldown is finished?
+	{
+		float RemainingTimer = GetWorld()->GetTimerManager().GetTimerRemaining(MoveCoolDownHandle);
+		UE_LOG(PlayerLog, Log, TEXT("The timer is not finished. Remaining time: %f"), RemainingTimer);
+		return;
+	}
+	else
+	{
+		UE_LOG(PlayerLog, Display, TEXT("The timer has finished"));
+		CeckTargetCell(TargetRoad, PlayerCellLocation);
+	}
 
 	UE_LOG(PlayerLog, Log, TEXT("bCanMove is: %s"), bCanMove ? TEXT("true") : TEXT("false"));
 	if (bCanMove)
@@ -162,6 +183,8 @@ void APawnPlayer::MoveBackward()
 					PlayerRoadLocation = TargetRoad;
 					FVector NewLocation = TargetCellObj->CellCenterLocation + NeededZCord;
 					SetActorLocation(NewLocation);
+					bCanMove = false;
+					GetWorldTimerManager().SetTimer(MoveCoolDownHandle, [this] {bCanMove = true; }, MoveCoolDown, false);
 				}
 			}
 		}
@@ -174,7 +197,17 @@ void APawnPlayer::MoveLeft()
 
 	TargetCell = PlayerCellLocation - 1;
 
-	CeckTargetCell(PlayerRoadLocation, TargetCell);
+	if (GetWorld()->GetTimerManager().IsTimerActive(MoveCoolDownHandle))//Check timer for cooldown is finished?
+	{
+		float RemainingTimer = GetWorld()->GetTimerManager().GetTimerRemaining(MoveCoolDownHandle);
+		UE_LOG(PlayerLog, Log, TEXT("The timer is not finished. Remaining time: %f"), RemainingTimer);
+		return;
+	}
+	else
+	{
+		UE_LOG(PlayerLog, Display, TEXT("The timer has finished"));
+		CeckTargetCell(TargetRoad, PlayerCellLocation);
+	}
 
 	UE_LOG(PlayerLog, Log, TEXT("bCanMove is: %s"), bCanMove ? TEXT("true") : TEXT("false"));
 	if (bCanMove)
@@ -195,6 +228,8 @@ void APawnPlayer::MoveLeft()
 					FVector NewLocation = TargetCellObj->CellCenterLocation + NeededZCord;
 					UE_LOG(PlayerLog, Display, TEXT("Player new location is: %s"), *NewLocation.ToString());
 					SetActorLocation(NewLocation);
+					bCanMove = false;
+					GetWorldTimerManager().SetTimer(MoveCoolDownHandle, [this] {bCanMove = true; }, MoveCoolDown, false);
 				}
 			}
 		}
@@ -206,7 +241,17 @@ void APawnPlayer::MoveRight()
 	UE_LOG(PlayerLog, Display, TEXT("Function MoveRight called"));
 	TargetCell = PlayerCellLocation + 1;
 
-	CeckTargetCell(PlayerRoadLocation, TargetCell);
+	if (GetWorld()->GetTimerManager().IsTimerActive(MoveCoolDownHandle))//Check timer for cooldown is finished?
+	{
+		float RemainingTimer = GetWorld()->GetTimerManager().GetTimerRemaining(MoveCoolDownHandle);
+		UE_LOG(PlayerLog, Log, TEXT("The timer is not finished. Remaining time: %f"), RemainingTimer);
+		return;
+	}
+	else
+	{
+		UE_LOG(PlayerLog, Display, TEXT("The timer has finished"));
+		CeckTargetCell(TargetRoad, PlayerCellLocation);
+	}
 
 	UE_LOG(PlayerLog, Log, TEXT("bCanMove is: %s"), bCanMove ? TEXT("true") : TEXT("false"));
 	if (bCanMove)
@@ -226,6 +271,8 @@ void APawnPlayer::MoveRight()
 					FVector NewLocation = TargetCellObj->CellCenterLocation + NeededZCord;
 					UE_LOG(PlayerLog, Display, TEXT("Player new location is: %s"), *NewLocation.ToString());
 					SetActorLocation(NewLocation);
+					bCanMove = false;
+					GetWorldTimerManager().SetTimer(MoveCoolDownHandle, [this] {bCanMove = true; }, MoveCoolDown, false);
 				}
 			}
 		}
