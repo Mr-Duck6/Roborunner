@@ -46,8 +46,6 @@ public:
 	 int32 MaxSafeRoadInRow = 3;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
 	 int32 MaxDangerRoadInRow = 4;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
-	 int32 MaxTurrelRoadInRow = 2;
 
 	AActorBaseRoad* GetRoadByID(int32 TargetID);
 	int32 NextRoadID;
@@ -67,7 +65,6 @@ private:
 	//Counters
 	int32 SafeRoadCounter;
 	int32 DangerRoadCounter;
-	int32 TurrelRoadCounter;
 
 	//First road
 	int32 FirstRoadsCounter;

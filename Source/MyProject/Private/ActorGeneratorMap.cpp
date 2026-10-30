@@ -1,5 +1,6 @@
 
 #include "ActorGeneratorMap.h"
+#include "ActorSafeRoad.h"
 #include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY(GeneratorMapLog);
@@ -12,7 +13,6 @@ AActorGeneratorMap::AActorGeneratorMap()
 	//Counters
 	SafeRoadCounter = 0;
 	DangerRoadCounter = 0;
-	TurrelRoadCounter = 0;
 
 	ChoicedRoad = 0;
 	SpawnRoadLocation = GetActorLocation();
@@ -106,6 +106,19 @@ int32 AActorGeneratorMap::ChoiceRoadToSpawn()
 	UE_LOG(GeneratorMapLog, Display, TEXT("FUNCTION ChoiceRoadToSpawn called"));
 
 	ChoicedRoad = FMath::RandRange(0, AllBPRoads.Num()-1);
+
+	//Rule for turret road spawn (only after safe road)
+	if (ChoicedRoad == 2)
+	{
+		if (!SpawnedRoad.IsEmpty() && SpawnedRoad.Last()->IsA(AActorSafeRoad::StaticClass()))
+		{
+			return ChoicedRoad = 2;
+		}
+		else
+		{
+			ChoicedRoad = 1;
+		}
+	}
 	UE_LOG(GeneratorMapLog, Display, TEXT("Chosed num is %i, road for spawn is: %s"), ChoicedRoad, *GetNameSafe(AllBPRoads[ChoicedRoad]));
 
 	//Limits
@@ -119,41 +132,33 @@ int32 AActorGeneratorMap::ChoiceRoadToSpawn()
 		UE_LOG(GeneratorMapLog, Display, TEXT("Use of an exception: DangerRoadCounter == MaxDangerRoadInRow, DangerRoadCounter is: %i  "), DangerRoadCounter);
 		ChoicedRoad = 0;
 	}
-	else if (TurrelRoadCounter == MaxTurrelRoadInRow)
-	{
-		UE_LOG(GeneratorMapLog, Display, TEXT("Use of an exception: TurrelRoadCounter == MaxTurrelRoadInRow, TurrelRoadCounter is: %i  "), TurrelRoadCounter);
-		ChoicedRoad = 0;
-	}
 
 	//Case spawn
 	switch (ChoicedRoad)
 	{
 	
-	case 0:
+	case 0://Safe road
 		UE_LOG(GeneratorMapLog, Display, TEXT
-		("Called case 0:\n SafeRoadCounter: %d\n DangerRoadCounter: %d\n TurrelRoadCounter: %d\n Returned ChoicedRoad: %d"),
-			SafeRoadCounter, DangerRoadCounter, TurrelRoadCounter, ChoicedRoad);
+		("Called case 0:\n SafeRoadCounter: %d\n DangerRoadCounter: %d\n Returned ChoicedRoad: %d"),
+			SafeRoadCounter, DangerRoadCounter, ChoicedRoad);
 
 		SafeRoadCounter++;
 		DangerRoadCounter = 0;
-		TurrelRoadCounter = 0;
 		return ChoicedRoad;
 
-	case 1:UE_LOG(GeneratorMapLog, Display, TEXT
-		  ("Called case 1:\n SafeRoadCounter: %d\n DangerRoadCounter: %d\n TurrelRoadCounter: %d\n Returned ChoicedRoad: %d"),
-		SafeRoadCounter, DangerRoadCounter, TurrelRoadCounter, ChoicedRoad);
+	case 1://Danger road
+		UE_LOG(GeneratorMapLog, Display, TEXT("Called case 1:\n SafeRoadCounter: %d\n DangerRoadCounter: %d\n Returned ChoicedRoad: %d"),
+		SafeRoadCounter, DangerRoadCounter, ChoicedRoad);
 
 		DangerRoadCounter++;
 		SafeRoadCounter = 0;
-		TurrelRoadCounter = 0;
 		return ChoicedRoad;
 
-	case 2:
+	case 2://Turret road
 		UE_LOG(GeneratorMapLog, Display, TEXT
-		("Called case 2:\n SafeRoadCounter: %d\n DangerRoadCounter: %d\n TurrelRoadCounter: %d\n Returned ChoicedRoad: %d"),
-			SafeRoadCounter, DangerRoadCounter, TurrelRoadCounter, ChoicedRoad);
+		("Called case 2:\n SafeRoadCounter: %d\n DangerRoadCounter: %d\n Returned ChoicedRoad: %d"),
+			SafeRoadCounter, DangerRoadCounter, ChoicedRoad);
 
-		TurrelRoadCounter++;
 		SafeRoadCounter = 0;
 		DangerRoadCounter = 0;
 		return ChoicedRoad;
@@ -161,13 +166,12 @@ int32 AActorGeneratorMap::ChoiceRoadToSpawn()
 	default:
 
 		UE_LOG(GeneratorMapLog, Display, TEXT
-		("Called default case:\n SafeRoadCounter: %d\n DangerRoadCounter: %d\n TurrelRoadCounter: %d\n Returned ChoicedRoad: %d"),
-			SafeRoadCounter, DangerRoadCounter, TurrelRoadCounter, ChoicedRoad);
+		("Called default case:\n SafeRoadCounter: %d\n DangerRoadCounter: %d\n Returned ChoicedRoad: %d"),
+			SafeRoadCounter, DangerRoadCounter, ChoicedRoad);
 
 		ChoicedRoad = 0;
 		SafeRoadCounter++;
 		DangerRoadCounter = 0;
-		TurrelRoadCounter = 0;
 		return ChoicedRoad;
 	}
 }
@@ -211,7 +215,6 @@ void AActorGeneratorMap::PlayerProgression()
 		}
 	}
 }
-
 
 AActorBaseRoad* AActorGeneratorMap::GetRoadByID(int32 TargetID)
 {
